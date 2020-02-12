@@ -186,4 +186,6 @@ Plays are executed from top to bottom. Tasks are also executed from top to botto
 First, we need to tell through the ansible-playbook command where is the inventory file to use with the argument "-i" and also the playbook file to parse:
 > ansible-playbook -i hosts playbook.yml
 
-Each play will be displayed on screen and as each host completes each task, the result is displayed on screen as well.  
+Each play will be displayed on screen and as each host completes each task, the result is displayed on screen as well:
+
+![Play recap](https://github.com/liquid4teur/Ansible/blob/master/Screenshots/Play_recap.PNG)   
