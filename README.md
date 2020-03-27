@@ -9,12 +9,13 @@ The pure concept of Ansible is to answer to our needs by organizing the tasks to
 
 - The linear strategy: it's the default operation model of Ansible that allows to linearly execute a list of tasks: in this way, data generated in one task could be used as the input of the next task.
 - The serial strategy: one or more hosts in batches are walked through the task list before looping back to the beginning for the next set of hosts. This operation model suits better when you need to perform tasks in a specific order.
-- The free strategy: since Ansible 2.0, there is a third operation model in which machines complete tasks as fast as they individually can without waiting for the rest of the hosts. This operation model suits better when we need to reduce the interruption time.
+- The free strategy (or run as fast as you can): since Ansible 2.0, there is a third operation model in which machines complete tasks as fast as they individually can without waiting for the rest of the hosts. This operation model suits better when we need to reduce the interruption time.
+_____________________
 
 
-## Presets
+# Presets
 
-### Installation
+## Installation
 
 There only needs to be one control system (Ansible Control Machine or ACM) where the Ansible engine is installed (the system that will manage itself and other systems in a fleet). Yet, Ansible is not required on the hosts to be managed. The Ansible engine has minimal installation requirements (python 2.6 or later with a few additional libraries up to date).
 
@@ -23,8 +24,9 @@ The use of Microsoft Windows as a control machine is not supported by Ansible.
 We will be using a Fedora 31 release (with VIM & Python installed on it) as the Ansible Control Machine. On Fedora, we'll use the built-in package manager dnf to install Ansible with the command:
 
 > sudo dnf install ansible
+________________________
 
-### Communication
+## Communication
 
 Communication with targeted hosts works (by default) through SSH. The tasks instructions and tasks code are transported through this protocol. Data from the actions (tasks) is returned over SSH as well.
 
@@ -33,20 +35,21 @@ Ansible can be run from any system that has access rights to the target hosts:
 - The targeted hosts have to be specified at least in an inventory source file,
 - With state directives in a playbook file,
 - And the credentials necessary to communicate with the targets.
+___________________________
 
 ## Configuration files
 
-In order to let Ansible works, you have to configure different configuration files.
+In order to let Ansible works, you have to configure different configuration files:
+- The inventory file (with inventory variables and inventory sources),
+- The playbook file (with the tasks)
 
-### Inventory
-
-#### The inventory file  
+### The inventory file  
 
 This file provide a set of potential target hosts to execute tasks on. These targets are required for any Ansible action. The inventories are not specifically tied to a set of Ansible instructions: multiple inventories can be used with different tasks.
 
 An inventory is a collection of hosts (optionally sorted into groups) with host names or IP addresses. The inventory files can be organized through 3 ways:
 
-- The simple way: an uncategorized list of host names or IP addresses.
+- The simple way: an uncategorized list of host names or IP addresses with any extra details.
 - By groups: as a fleet of machines grows, it's interesting to categorize hosts within groups.
 - By subgroups: groups can include other groups building up a hierarchy (for many reasons: such as purpose, locality or operating system).
 
@@ -56,7 +59,7 @@ As Ansible supports multiple inventories, an inventory file with the same group 
 
 #### The Inventory variables
 
-These variables contains data related to a host comprised of key in value pairs. These variables have used all over the place in Ansible.
+Inside the inventory file, these variables contains data related to a host comprised of key in value pairs. These variables have used all over the place in Ansible.
 
 Variables are also used in templated files. It gives operators the ability to develop flexible and dynamic automation.  
 
@@ -64,14 +67,35 @@ Variables can be expressed:
 - Directly in the inventory file alongside the host so that they are specific to that particular inventory.
 - In separate files within inventory subdirectories allowing for the same variable data to apply to multiple inventories.
 
+They are used in:  
+- Task arguments: 
+
+```
+pip: a_value
+	name: {{ foo }} 
+```
+
+- Templates configuration:
+
+```
+[databases]
+conn = {{ db }} 
+```
+
+Directly working with Ansible behavior: 
+
+```
+ansible_user=fred
+```
+
 #### The inventory sources
 
-Inventories and the variables associated with them can come from static or dynamic sources:
+Inventory files and the variables associated with them can come from static or dynamic sources:
 
 - Static sources are simple to start with but require manual updates as fleet information changes.
 - Ansible provides dynamic inventory scripts to fetch data from Cloud services or other container and VM sources (Docker, VMWare, VirtualBox and Vagrant).
 
-#### The tasks
+### The tasks
 
 The action ansible takes on target hosts are called tasks. Tasks are a descriptive bit of YAML code that developers write to provide just enough data and controls for Ansible to be able to complete the desired action.
 
@@ -80,7 +104,12 @@ Data can be considered arguments to an executable script such as:
 - The name of a database to create,
 - A path of a directory to create.
 
-In task definitions, variables can be used in the task arguments or used in conditional statements (if Ansible should perform or not a certain task). Ansible is also able to determine whether or not the task's intended effect has already been achieved (the status is reflected bu the task returned status which contains information about the task attempt).
+In task definitions, variables can be used in the task arguments or used in conditional statements (if Ansible should perform or not a certain task). Ansible is also able to determine whether or not the task's intended effect has already been achieved (the status is reflected by the task returned status which contains information about the task attempt). 
+
+Those tasks provides some control on what could be done and allow tasks to be more dynamic by:
+- Looping: Repeating task over a list of items 
+- Privilege escalation: sudo to root or others
+- Conditional execution: Runtime decisions
 
 The code that tasks use to perform work are called modules (custom modules can be created or already bundled on [Ansible documentation](https://docs.ansible.com/ansible/latest/modules/modules_by_category.html)) . Ansible uses these modules and combines it with common execution code and task argument input to be transported to the target host for execution. Data will be returned back to Ansible.
 
@@ -88,8 +117,10 @@ The code that tasks use to perform work are called modules (custom modules can b
 sequenceDiagram
 Control System->> Target Host: Module code + Common Code + Task Argument
 Target Host->> Control System: Return Data
-
 ```
+
+With the data return, Ansible is able to determine if the task's intended effect has already been achieved or not. The status is returned which contain information about the task attempt (and with the conditional execution, more status can be shown by Ansible).
+
 
 ### Playbook
 
@@ -98,6 +129,7 @@ Playbooks are also YAML formatted files that collect one or more plays. Plays ar
 Ansible playbook is the Ansible executable that is used to parse and execute the playbook with the provided inventory. A playbook can be launched with the command:
 
 >ansible-playbook playbook.yml
+_______________________
 
 ## How it works
 
