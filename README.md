@@ -82,7 +82,7 @@ pip: a_value
 conn = {{ db }} 
 ```
 
-Directly working with Ansible behavior: 
+- Directly working with Ansible behavior: 
 
 ```
 ansible_user=fred
@@ -97,7 +97,7 @@ Inventory files and the variables associated with them can come from static or d
 
 ### The tasks
 
-The action ansible takes on target hosts are called tasks. Tasks are a descriptive bit of YAML code that developers write to provide just enough data and controls for Ansible to be able to complete the desired action.
+The action ansible takes on target hosts are called tasks and are written into a playbook file. Tasks are a descriptive bit of YAML code that developers write to provide just enough data and controls for Ansible to be able to complete the desired action with a provided inventory (hosts).
 
 Data can be considered arguments to an executable script such as:
 
@@ -161,7 +161,7 @@ In this code, we also added a group called "all:vars". It let us define a variab
 
 Now, we need to create a playbook file. We set up a file (playbook will be the name of the file) with the command:
 
->vim playbook.yml  
+>vim playbook.yaml  
 
 In order to correctly write a playbook, we have to understand the hierarchy:
 
@@ -204,12 +204,14 @@ If we translate this into code, we have the example below:
 ```
 
 The three dashes are here to indicate a YAML file.
-Here we create the first play ("name"). Plays requires:
+Here we create a playbook file with "two plays" ("Do a demo" & "Do another demo"). Each play requires:
 
 - A name ("Do a demo" for example),
 - A host pattern (the groupA or groupB we specified in the inventory file),
-- Some tasks (each task should have a name):
-		- Inside the task we specify the module we want to use (here we want to use the debug module to display provided text on the screen). The debug module can take a message argument.
+- One or more tasks (depending on how you structure your play): 
+		- Each task should have a name,
+		- Inside the task we specify the module we want to use (here we want to use the debug module to display provided text on the screen),
+		- Each module can take an argument (depending on how the module works): here the debug module can take a message argument.
 
 Plays are executed from top to bottom. Tasks are also executed from top to bottom.
 
