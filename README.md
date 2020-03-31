@@ -1,11 +1,13 @@
 # Presentation
 
+This readme file is only here to quickly introduce you what is Ansible and how quickly create and run simple tasks through Ansible.
+
 **Ansible** is a lightweight automation tool or more precisely a task execution engine (acquired today by Red Hat but remains an open source project hosted on [Github](https://github.com/ansible)). This tool, written in Python, is here to help us easily perform one or more actions (**tasks**) on one or more computers. These tasks can target:
 
 - The local system Ansible is running from,
 - Other systems Ansible can reach over the network (ability to manage a fleet of remote systems at the same time).
 
-The pure concept of Ansible is to answer to our needs by organizing the tasks to be performed in a simple to read text file ("Yet Another Markup Language" formatted file) with reusable and repeatable system. Ansible works through three operation models:
+The pure concept of Ansible is to answer to our needs by organizing the tasks to be performed in a simple to read text file ("Yet Another Markup Language" formatted file), readable by both developers and operators, with reusable and repeatable system. Ansible works through three operation models:
 
 - The linear strategy: it's the default operation model of Ansible that allows to linearly execute a list of tasks: in this way, data generated in one task could be used as the input of the next task.
 - The serial strategy: one or more hosts in batches are walked through the task list before looping back to the beginning for the next set of hosts. This operation model suits better when you need to perform tasks in a specific order.
@@ -129,6 +131,23 @@ Playbooks are also YAML formatted files that collect one or more plays. Plays ar
 Ansible playbook is the Ansible executable that is used to parse and execute the playbook with the provided inventory. A playbook can be launched with the command:
 
 >ansible-playbook playbook.yml
+
+In order to correctly write a playbook, we have to understand the hierarchy:
+
+```
+┌───────────────────────┐
+│     Playbook File     │
+│  ┌─────────────────┐  │
+│  │      Play       │  │
+│  │ (Name & Hosts)  │  │
+│  │  ┌───────────┐  │  │
+│  │  │   Task    │  │  │
+│  │  │Name/Module│  │  │
+│  │  └───────────┘  │  │
+│  └─────────────────┘  │
+└───────────────────────┘   
+
+```
 _______________________
 
 ## How it works
@@ -163,23 +182,8 @@ Now, we need to create a playbook file. We set up a file (playbook will be the n
 
 >vim playbook.yaml  
 
-In order to correctly write a playbook, we have to understand the hierarchy:
+Hereby an example of a playbook:
 
-```
-┌───────────────────────┐
-│     Playbook File     │
-│  ┌─────────────────┐  │
-│  │      Play       │  │
-│  │ (Name & Hosts)  │  │
-│  │  ┌───────────┐  │  │
-│  │  │   Task    │  │  │
-│  │  │Name/Module│  │  │
-│  │  └───────────┘  │  │
-│  └─────────────────┘  │
-└───────────────────────┘   
-
-```
-If we translate this into code, we have the example below:
 ```
 ---
 - name: "Do a demo"
@@ -214,6 +218,7 @@ Here we create a playbook file with "two plays" ("Do a demo" & "Do another demo"
 		- Each module can take an argument (depending on how the module works): here the debug module can take a message argument.
 
 Plays are executed from top to bottom. Tasks are also executed from top to bottom.
+Playbook execution flows through each play in a playbook until all plays are complete.
 
 ### Executing the playbook
 
@@ -222,4 +227,74 @@ First, we need to tell through the ansible-playbook command where is the invento
 
 Each play will be displayed on screen and as each host completes each task, the result is displayed on screen as well:
 
-![Play recap](https://github.com/liquid4teur/Ansible/blob/master/Screenshots/Play_recap.PNG)   
+![Play recap](https://github.com/liquid4teur/Ansible/blob/master/Screenshots/Play_recap.PNG) 
+
+Another detail, during the playbook execution, if a play fails the execution stops and doesn't reach the end of the playbook.
+
+#### Task Conditionals 
+
+If we use a task conditional, we can have a better control on tasks and play behavior. 
+A task conditional provides a boolean statement that is evaluated for each host:
+- If it evaluates to true, the task is executed for the host,
+- Otherwise, it is skipped. 
+
+A task conditional can be used through the when task key: 
+
+```
+---
+- name: "Do a demo"
+  hosts: groupA
+  tasks:
+	  - name: demo task 1
+		debug:
+			msg: "this is task 1"
+	  - name: demo task 2
+	    debug:
+		    msg: "this is task 2"
+	    when: inventory_hostname == "host2"
+
+- name: "Do another demo"
+  hosts: groupB
+  tasks:
+	  - name: demo task 3
+		debug:
+			msg: "this is task 3"
+	  - name: demo task 4
+	    debug:
+		    msg: "this is task 4"
+```
+
+In this example, our task conditional should only evaluate to true for host2. Consequently, the task "demo task 2" will only be executed for host2.
+
+Additional logic can be added to plays to control behavior, such as :
+- An alternate execution strategy,
+- An acceptable amount of failure, 
+- Using privilege escalation.
+
+For example, if we use the serial strategy, we will have:
+
+```
+---
+- name: "Do a demo"
+  hosts: groupA
+  tasks:
+	  - name: demo task 1
+		debug:
+			msg: "this is task 1"
+	  - name: demo task 2
+	    debug:
+		    msg: "this is task 2"
+
+- name: "Do another demo"
+  hosts: groupB
+  serial: 1
+  tasks:
+	  - name: demo task 3
+		debug:
+			msg: "this is task 3"
+	  - name: demo task 4
+	    debug:
+		    msg: "this is task 4"
+```
+
+In this example, we put a batch size of one (batch size helps us define how many hosts Ansible should manage at a single time) and using serial strategy each host completes all tasks of the play before moving on to the next host. Without the serial strategy, every host completes a task before the playbook moves on to the next task. 
