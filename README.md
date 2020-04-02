@@ -30,7 +30,7 @@ ________________________
 
 ## Communication
 
-Communication with targeted hosts works (by default) through SSH. The tasks instructions and tasks code are transported through this protocol. Data from the actions (tasks) is returned over SSH as well.
+Communication with targeted hosts works (by default) through scripted SSH command executions. The tasks instructions and tasks code are transported through this protocol. Data from the actions (tasks) is returned over SSH as well.
 
 Ansible can be run from any system that has access rights to the target hosts:
 
@@ -269,7 +269,8 @@ In this example, our task conditional should only evaluate to true for host2. Co
 Additional logic can be added to plays to control behavior, such as :
 - An alternate execution strategy,
 - An acceptable amount of failure, 
-- Using privilege escalation.
+- Using privilege escalation,
+- Using handlers in order to introduce some event system.
 
 For example, if we use the serial strategy, we will have:
 
@@ -296,5 +297,50 @@ For example, if we use the serial strategy, we will have:
 	    debug:
 		    msg: "this is task 4"
 ```
-
 In this example, we put a batch size of one (batch size helps us define how many hosts Ansible should manage at a single time) and using serial strategy each host completes all tasks of the play before moving on to the next host. Without the serial strategy, every host completes a task before the playbook moves on to the next task. 
+
+Another example, we can use the handler aspect directly into our tasks:
+
+```
+---
+- name: "Deploy nginx"
+  hosts: groupA
+  tasks:
+	  - name: install nginx
+		apt:
+			name: nginx
+			state: latest
+		notify: restart nginx
+
+handlers: 
+	- name: restart nginx 
+	  service: 
+		name: nginx
+		state: started
+
+```
+
+This instructs Ansible to notify a handler on change. 
+Handlers are a way for a task that results in a change to notify a reaction. 
+It provides a way to create a single reaction. 
+Here, the configuration of nginx has changed, so it's evident that nginx needs to restart. 
+
+To handle a notify, we also need to provide a section inside the play and provides a task within that matches the name used in the notify. 
+
+________________________
+
+## Ansible Ad Hoc command 
+
+For some tasks, you don't need a saved playbook of tasks. Ansible provides a method for ad hoc operations with the Ansible executable. 
+
+All of those Ansible Ad Hoc command are visible with the command:
+
+>ansible --help
+
+For example, we can use the copy module from Ansible to quickly distribute a file from a control machine to the target nodes:
+
+>ansible -i hosts -m copy -a "src=filepath dest=/tmp/.."
+
+You can read about a specific module of Ansible by using the Ansible doc tool:
+
+>ansible-doc copy
