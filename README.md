@@ -297,6 +297,7 @@ For example, if we use the serial strategy, we will have:
 	    debug:
 		    msg: "this is task 4"
 ```
+
 In this example, we put a batch size of one (batch size helps us define how many hosts Ansible should manage at a single time) and using serial strategy each host completes all tasks of the play before moving on to the next host. Without the serial strategy, every host completes a task before the playbook moves on to the next task. 
 
 Another example, we can use the handler aspect directly into our tasks:
@@ -322,10 +323,9 @@ handlers:
 
 This instructs Ansible to notify a handler on change. 
 Handlers are a way for a task that results in a change to notify a reaction. 
-It provides a way to create a single reaction. 
-Here, the configuration of nginx has changed, so it's evident that nginx needs to restart. 
+Here, for example, the configuration of nginx has changed, so it's evident that nginx needs to restart. 
 
-To handle a notify, we also need to provide a section inside the play and provides a task within that matches the name used in the notify. 
+To handle a notify, we also need to provide a handlers section inside the play and provides a task within that matches the name used in the notify. 
 
 ________________________
 
@@ -344,3 +344,7 @@ For example, we can use the copy module from Ansible to quickly distribute a fil
 You can read about a specific module of Ansible by using the Ansible doc tool:
 
 >ansible-doc copy
+
+You can also ping the hosts inside your inventory with:
+
+>ansible -i hosts -m ping
